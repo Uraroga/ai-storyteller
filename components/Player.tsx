@@ -22,12 +22,66 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
   const isPlayingRef = useRef(state.isPlaying);
   const stateRef = useRef(state);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Wake Lock Ref
+  const wakeLockRef = useRef<any>(null);
 
   // Sync refs with state
   useEffect(() => {
     isPlayingRef.current = state.isPlaying;
     stateRef.current = state;
   }, [state]);
+
+  // --- WAKE LOCK IMPLEMENTATION START ---
+  const requestWakeLock = useCallback(async () => {
+    try {
+      // Check if feature exists
+      if ('wakeLock' in navigator) {
+        wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        console.log('Screen Wake Lock active');
+      }
+    } catch (err) {
+      console.warn('Wake Lock not supported or rejected:', err);
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(async () => {
+    if (wakeLockRef.current) {
+      try {
+        await wakeLockRef.current.release();
+        wakeLockRef.current = null;
+        console.log('Screen Wake Lock released');
+      } catch (err) {
+        console.warn('Wake Lock release error:', err);
+      }
+    }
+  }, []);
+
+  // Sync WakeLock with isPlaying state
+  useEffect(() => {
+    if (state.isPlaying) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+    // Cleanup on unmount
+    return () => {
+      releaseWakeLock();
+    };
+  }, [state.isPlaying, requestWakeLock, releaseWakeLock]);
+
+  // Re-acquire lock if tab visibility changes (browsers often drop lock when tab is hidden)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && state.isPlaying) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [state.isPlaying, requestWakeLock]);
+  // --- WAKE LOCK IMPLEMENTATION END ---
+
 
   // Helper to safely update state
   const updateState = (updates: Partial<PlayerState>) => {
