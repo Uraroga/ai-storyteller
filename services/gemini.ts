@@ -12,6 +12,44 @@ interface SceneResponse {
   imagePrompt: string;
 }
 
+// Helper to wait for a specified duration
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Helper for retry logic with exponential backoff
+async function retryOperation<T>(
+  operation: () => Promise<T>, 
+  maxRetries: number = 3, 
+  initialDelay: number = 2000
+): Promise<T> {
+  let delay = initialDelay;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      // Check for quota exhaustion or server errors
+      const errorString = JSON.stringify(error);
+      const isQuotaError = 
+        errorString.includes('429') || 
+        errorString.includes('RESOURCE_EXHAUSTED') || 
+        errorString.includes('quota') ||
+        error?.status === 429 ||
+        error?.code === 429;
+
+      if (isQuotaError && i < maxRetries - 1) {
+        console.warn(`API Quota hit (attempt ${i + 1}/${maxRetries}). Retrying in ${delay}ms...`);
+        await wait(delay);
+        delay *= 2; // Exponential backoff
+        continue;
+      }
+      
+      // If it's not a quota error, or we ran out of retries, throw it
+      throw error;
+    }
+  }
+  throw new Error("Operation failed after max retries");
+}
+
 export const generateSceneContent = async (
   story: Story,
   chapterIndex: number
@@ -41,60 +79,64 @@ export const generateSceneContent = async (
     Rispondi in JSON.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            narrative: { type: Type.STRING, description: "La narrazione della scena in italiano" },
-            imagePrompt: { type: Type.STRING, description: "Il prompt per l'immagine in inglese" }
-          },
-          required: ["narrative", "imagePrompt"]
+  return retryOperation(async () => {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              narrative: { type: Type.STRING, description: "La narrazione della scena in italiano" },
+              imagePrompt: { type: Type.STRING, description: "Il prompt per l'immagine in inglese" }
+            },
+            required: ["narrative", "imagePrompt"]
+          }
         }
-      }
-    });
+      });
 
-    const text = response.text;
-    if (!text) throw new Error("No text response from Gemini");
-    
-    return JSON.parse(text) as SceneResponse;
-  } catch (error) {
-    console.error("Text Generation Error:", error);
-    throw new Error("Failed to generate scene narrative.");
-  }
+      const text = response.text;
+      if (!text) throw new Error("No text response from Gemini");
+      
+      return JSON.parse(text) as SceneResponse;
+    } catch (error) {
+      console.error("Text Generation Error:", error);
+      throw error;
+    }
+  });
 };
 
 export const generateSceneImage = async (imagePrompt: string): Promise<string> => {
   if (!API_KEY) throw new Error("API Key missing");
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: imagePrompt }]
-      },
-      config: {
-        // Image generation logic remains the same, prompt controls style
-      }
-    });
-
-    // Iterate parts to find the image
-    const candidates = response.candidates;
-    if (candidates && candidates.length > 0) {
-        for (const part of candidates[0].content.parts) {
-            if (part.inlineData && part.inlineData.data) {
-                return part.inlineData.data;
-            }
+  return retryOperation(async () => {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [{ text: imagePrompt }]
+        },
+        config: {
+          // Image generation logic remains the same, prompt controls style
         }
+      });
+
+      // Iterate parts to find the image
+      const candidates = response.candidates;
+      if (candidates && candidates.length > 0) {
+          for (const part of candidates[0].content.parts) {
+              if (part.inlineData && part.inlineData.data) {
+                  return part.inlineData.data;
+              }
+          }
+      }
+      
+      throw new Error("No image data found in response");
+    } catch (error) {
+      console.error("Image Generation Error:", error);
+      throw error;
     }
-    
-    throw new Error("No image data found in response");
-  } catch (error) {
-    console.error("Image Generation Error:", error);
-    throw new Error("Failed to generate scene image.");
-  }
+  });
 };

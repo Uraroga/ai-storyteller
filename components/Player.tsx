@@ -177,11 +177,20 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
         speakText(narrative);
       }
       
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Generation error in Player:", err);
+      
+      // Check for specific error types to give better feedback
+      let errorMsg = "Si è verificato un errore durante la generazione. Riprova.";
+      const errorStr = JSON.stringify(err);
+      
+      if (errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED")) {
+        errorMsg = "Limite traffico AI raggiunto. Attendi qualche istante e riprova.";
+      }
+
       updateState({ 
         isGenerating: false, 
-        error: "Si è verificato un errore durante la generazione. Riprova.",
+        error: errorMsg,
         isPlaying: false 
       });
     }
@@ -267,7 +276,7 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto mb-2 text-red-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="text-sm">{state.error}</p>
+                        <p className="text-sm font-semibold">{state.error}</p>
                     </div>
                 </div>
             )}
