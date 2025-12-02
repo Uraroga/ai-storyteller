@@ -172,7 +172,7 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
   const canGoNext = !isLastChapter || state.isInfinite;
 
   return (
-    <div className="flex flex-col h-full gap-8 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col h-full gap-8 w-full">
       
       {/* Top Bar / Timeline */}
       <div className="flex flex-col gap-2">
@@ -194,15 +194,15 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-20 items-center h-full">
         
         {/* Left: Image Display */}
-        <div className="relative w-full aspect-[3/2] bg-slate-800 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+        <div className="relative w-full aspect-[3/2] bg-slate-800 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
             {/* Loading Overlay */}
             {state.isGenerating && (
             <div className="absolute inset-0 z-20 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3"></div>
-                <div className="text-sm font-medium tracking-wide">GENERAZIONE SCENA</div>
+                <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin mb-3"></div>
+                <div className="text-lg font-medium tracking-wide">GENERAZIONE SCENA...</div>
             </div>
             )}
 
@@ -227,22 +227,22 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
             />
             ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-2">
-                <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
                 </div>
-                <span className="text-sm">In attesa...</span>
+                <span className="text-lg">In attesa...</span>
             </div>
             )}
         </div>
 
         {/* Right: Narrative Text & Controls */}
-        <div className="flex flex-col h-full justify-center">
-            <div className="mb-8">
-                <h3 className="text-indigo-400 text-base font-bold uppercase tracking-wider mb-4">
+        <div className="flex flex-col h-full justify-center py-4">
+            <div className="mb-10">
+                <h3 className="text-indigo-400 text-xl md:text-2xl font-bold uppercase tracking-wider mb-6">
                     Capitolo {state.currentChapterIndex + 1}
                 </h3>
                 
-                <div className="prose prose-invert prose-lg">
+                <div className="prose prose-invert prose-xl md:prose-2xl max-w-none">
                      <p className="text-slate-200 leading-relaxed">
                         {scene ? scene.narrative : "Caricamento in corso..."}
                     </p>
@@ -255,7 +255,7 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
                      <button 
                         onClick={togglePlay}
                         disabled={state.isGenerating}
-                        className={`flex-grow py-5 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-3 shadow-lg ${
+                        className={`flex-grow py-6 rounded-2xl font-semibold text-xl transition-all flex items-center justify-center gap-3 shadow-lg ${
                             state.isPlaying 
                             ? 'bg-slate-800 text-white hover:bg-slate-700 border border-slate-600' 
                             : 'bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-[1.02]'
@@ -263,12 +263,12 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
                      >
                         {state.isPlaying ? (
                             <>
-                                <span className="w-3 h-3 bg-red-500 rounded-sm"></span>
+                                <span className="w-4 h-4 bg-red-500 rounded-sm"></span>
                                 Pausa
                             </>
                         ) : (
                             <>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                                 Avvia
                             </>
                         )}
@@ -278,20 +278,20 @@ const Player: React.FC<PlayerProps> = ({ story, onBack }) => {
                      <button
                         onClick={handleManualNext}
                         disabled={state.isGenerating || !canGoNext}
-                        className="px-6 rounded-xl bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="px-8 rounded-2xl bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-500 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         title="Prossimo Capitolo"
                      >
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                      </button>
                  </div>
 
-                 <div className="flex justify-center text-sm">
-                    <label className="flex items-center gap-3 cursor-pointer text-slate-400 hover:text-white transition-colors">
+                 <div className="flex justify-center text-base">
+                    <label className="flex items-center gap-3 cursor-pointer text-slate-400 hover:text-white transition-colors p-2">
                         <input 
                             type="checkbox" 
                             checked={state.isInfinite}
                             onChange={() => updateState({ isInfinite: !state.isInfinite })}
-                            className="w-5 h-5 rounded border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-slate-800"
+                            className="w-6 h-6 rounded border-slate-600 text-indigo-600 focus:ring-indigo-500 bg-slate-800"
                         />
                         Loop Storia (Ricomincia alla fine)
                     </label>

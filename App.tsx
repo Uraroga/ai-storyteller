@@ -17,8 +17,8 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
       
-      <main className="container mx-auto p-4 md:p-8 min-h-screen flex flex-col max-w-7xl">
-        <header className="mb-10 flex justify-between items-center py-4">
+      <main className="container mx-auto p-4 md:p-6 min-h-screen flex flex-col max-w-[95%] 2xl:max-w-[1800px]">
+        <header className="mb-6 flex justify-between items-center py-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-500/20"></div>
             <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -43,7 +43,7 @@ const App: React.FC = () => {
           )}
         </div>
         
-        <footer className="mt-12 text-center text-slate-600 text-sm py-4 border-t border-slate-800">
+        <footer className="mt-8 text-center text-slate-600 text-sm py-4 border-t border-slate-800">
           Powered by Gemini 2.5 Flash
         </footer>
       </main>
